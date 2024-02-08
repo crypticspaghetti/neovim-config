@@ -29,7 +29,7 @@ return {
       vim.keymap.set("n", "<leader>vrr", function() vim.lsp.buf.references() end, opts)
       vim.keymap.set("n", "<leader>vrn", function() vim.lsp.buf.rename() end, opts)
       vim.keymap.set("i", "<C-h>", function() vim.lsp.buf.signature_help() end, opts)
-end)
+    end)
 
     require("mason").setup({})
     require("mason-lspconfig").setup({
@@ -50,6 +50,29 @@ end)
         end,
       }
     })
+
+    local cmp = require("cmp")
+    local cmp_select = { behavior = cmp.SelectBehavior.Select }
+
+    cmp.setup({
+      sources = {
+        { name = "path"},
+        { name = "nvim_lsp"},
+        { name = "nvim_lua"},
+      },
+      formatting = lsp_zero.cmp_format(),
+      mapping = cmp.mapping.preset.insert({
+        ["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
+        ["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
+        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
+        ["<C-Space>"] = cmp.mapping.complete(),
+      }),
+    })
+
+    local ls = require("luasnip")
+
+    vim.keymap.set({"i", "s"}, "<tab>", function () ls.jump(1) end, { silent = true })
+    vim.keymap.set({"i", "s"}, "<s-tab>", function () ls.jump(-1) end, { silent = true })
   end
 }
 
