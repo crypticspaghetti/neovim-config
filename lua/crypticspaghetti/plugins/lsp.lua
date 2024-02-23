@@ -52,6 +52,7 @@ return {
     })
 
     local cmp = require("cmp")
+    local ls = require("luasnip")
     local cmp_select = { behavior = cmp.SelectBehavior.Select }
 
     cmp.setup({
@@ -62,17 +63,39 @@ return {
       },
       formatting = lsp_zero.cmp_format(),
       mapping = cmp.mapping.preset.insert({
-        ["<C-p>"] = cmp.mapping.select_prev_item(cmp_select),
-        ["<C-n>"] = cmp.mapping.select_next_item(cmp_select),
-        ["<C-y>"] = cmp.mapping.confirm({ select = true }),
+        ["<Tab>"] = cmp.mapping(function (fallback)
+          if cmp.visible() then
+            cmp.select_next_item()
+          elseif ls.expand_or_jumpable() then
+            ls.expand_or_jump()
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
+        ["<S-Tab>"] = cmp.mapping(function (fallback)
+          if cmp.visible() then
+            cmp.select_prev_item()
+          elseif ls.jumpable(-1) then
+            ls.jump(-1)
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
         ["<C-Space>"] = cmp.mapping.complete(),
+        ["<Enter>"] = cmp.mapping(function (fallback)
+          if cmp.visible() then
+            cmp.confirm({ select = true })
+          else
+            fallback()
+          end
+        end, { "i", "s" }),
       }),
     })
 
-    local ls = require("luasnip")
-
-    vim.keymap.set({"i", "s"}, "<tab>", function () ls.jump(1) end, { silent = true })
-    vim.keymap.set({"i", "s"}, "<s-tab>", function () ls.jump(-1) end, { silent = true })
+    ls.setup({
+      region_check_events = "CursorHold,InsertLeave",
+      delete_check_events = "TextChanged,InsertEnter",
+    })
   end
 }
 
